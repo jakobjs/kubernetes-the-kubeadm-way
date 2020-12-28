@@ -201,7 +201,7 @@ SCRIPT
 
 $setup_loadbalancer = <<SCRIPT
 set -euxo pipefail
-
+sudo apt-get install net-tools iproute2 -y -f
 ETH=$(route | grep '^default' | grep -o '[^ ]*$')
 LB_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d / -f 1)
 MASTER_NODES=$(grep master /etc/hosts | awk '{print $2}')
@@ -339,6 +339,7 @@ WORKER_JOIN_CMD=$(grep -e "kubeadm join" -A3 /vagrant/kubeadm-init.log | sed 's/
 cat <<EOF >/vagrant/join-master.sh
 #!/bin/bash
 set -x
+sudo apt-get install net-tools iproute2 -y -f
 ETH=$(route | grep '^default' | grep -o '[^ ]*$')
 NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
@@ -354,6 +355,7 @@ EOF
 cat <<EOF >/vagrant/join-worker.sh
 #!/bin/bash
 set -x
+sudo apt-get install net-tools iproute2 -y -f
 ETH=$(route | grep '^default' | grep -o '[^ ]*$')
 NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
