@@ -201,8 +201,7 @@ SCRIPT
 
 $setup_loadbalancer = <<SCRIPT
 set -euxo pipefail
-sudo apt-get install net-tools iproute2 -y -f
-ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+ETH=$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")
 LB_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d / -f 1)
 MASTER_NODES=$(grep master /etc/hosts | awk '{print $2}')
 
@@ -262,7 +261,7 @@ SCRIPT
 
 $cluster_init = <<SCRIPT
 set -euxo pipefail
-ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+ETH=$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")
 NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
 cat <<EOF > cluster-config.yaml
@@ -290,7 +289,6 @@ kubeadm init --config=cluster-config.yaml \
   | tee /vagrant/kubeadm-init.log
 
 ip route delete default via ${NODE_IP}
-
 
 # Edit the coredns deployment so it serves the /etc/hosts from it's host so pods can resolve the master/worker nodes
 export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -327,7 +325,6 @@ data:
     }
 EOF
 
-
 # Set up CNI network addon
 export KUBECONFIG=/etc/kubernetes/admin.conf
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')&env.IPALLOC_RANGE=${CLUSTER_POD_CIDR}"
@@ -339,8 +336,7 @@ WORKER_JOIN_CMD=$(grep -e "kubeadm join" -A3 /vagrant/kubeadm-init.log | sed 's/
 cat <<EOF >/vagrant/join-master.sh
 #!/bin/bash
 set -x
-sudo apt-get install net-tools iproute2 -y -f
-ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+ETH=$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")
 NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
 ### NOTE THIS IS STUPID. Pre pull the images, then add a new default route so that etcd uses the correct IP. Delete the dummy default route after.
@@ -355,8 +351,7 @@ EOF
 cat <<EOF >/vagrant/join-worker.sh
 #!/bin/bash
 set -x
-sudo apt-get install net-tools iproute2 -y -f
-ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+ETH=$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")
 NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
 ### NOTE THIS IS STUPID. Pre pull the images, then add a new default route so that etcd uses the correct IP. Delete the dummy default route after.
