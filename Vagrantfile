@@ -202,7 +202,8 @@ SCRIPT
 $setup_loadbalancer = <<SCRIPT
 set -euxo pipefail
 
-LB_IP=$(ip addr show enp0s8 | grep "inet " | awk '{print $2}' | cut -d / -f 1)
+ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+LB_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d / -f 1)
 MASTER_NODES=$(grep master /etc/hosts | awk '{print $2}')
 
 ## Run on Loadbalancer
@@ -261,7 +262,8 @@ SCRIPT
 
 $cluster_init = <<SCRIPT
 set -euxo pipefail
-NODE_IP=$(ip addr show enp0s8 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
 cat <<EOF > cluster-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta2
@@ -337,7 +339,8 @@ WORKER_JOIN_CMD=$(grep -e "kubeadm join" -A3 /vagrant/kubeadm-init.log | sed 's/
 cat <<EOF >/vagrant/join-master.sh
 #!/bin/bash
 set -x
-NODE_IP=$(ip addr show enp0s8 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
 ### NOTE THIS IS STUPID. Pre pull the images, then add a new default route so that etcd uses the correct IP. Delete the dummy default route after.
 kubeadm config images pull
@@ -351,7 +354,8 @@ EOF
 cat <<EOF >/vagrant/join-worker.sh
 #!/bin/bash
 set -x
-NODE_IP=$(ip addr show enp0s8 | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+ETH=$(route | grep '^default' | grep -o '[^ ]*$')
+NODE_IP=$(ip addr show $ETH | grep "inet " | awk '{print $2}' | cut -d/ -f1)
 
 ### NOTE THIS IS STUPID. Pre pull the images, then add a new default route so that etcd uses the correct IP. Delete the dummy default route after.
 kubeadm config images pull
