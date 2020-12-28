@@ -12,7 +12,6 @@ WORKER_IP_START = 200
 LB_IP_START = 10
 
 Vagrant.configure("2") do |config|
-  #config.vm.box = "ubuntu/focal64"
   config.vm.box = "generic/ubuntu2004"
 
   # Provision Load Balancer Node
@@ -21,6 +20,7 @@ Vagrant.configure("2") do |config|
       vb.name = "kubernetes-the-kubeadm-way-lb"
       vb.memory = 512
       vb.cpus = 1
+      vb.linked_clone = true
     end
     node.vm.hostname = "loadbalancer"
     node.vm.network :private_network, ip: IP_NW + "#{LB_IP_START}"
@@ -44,6 +44,7 @@ Vagrant.configure("2") do |config|
         vb.name = "kubernetes-the-kubeadm-way-master-#{i}"
         vb.memory = 2048
         vb.cpus = 2
+        vb.linked_clone = true
       end
       node.vm.hostname = "master-#{i}"
       node.vm.network :private_network, ip: IP_NW + "#{MASTER_IP_START + i}"
@@ -77,6 +78,7 @@ Vagrant.configure("2") do |config|
         vb.name = "kubernetes-the-kubeadm-way-worker-#{i}"
         vb.memory = 4096
         vb.cpus = 4
+        vb.linked_clone = true
       end
       node.vm.hostname = "worker-#{i}"
       node.vm.network :private_network, ip: IP_NW + "#{WORKER_IP_START + i}"
@@ -109,7 +111,8 @@ if [ -r /vagrant/ssh/id_ed25519 ]; then
 else  
   ssh-keygen -t ed25519 -a 100 -q -N "" -f ~/.ssh/id_ed25519
   cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
-  mkdir -p /vagrant/ssh
+  sudo mkdir -p /vagrant/ssh
+  sudo chmod 777 /vagrant/ssh
   cp ~/.ssh/id_* /vagrant/ssh/
 fi
 SCRIPT
